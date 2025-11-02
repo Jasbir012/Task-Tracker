@@ -31,17 +31,17 @@ public class UIManager : MonoBehaviour
 
     private void Start()
     {
-        // Display today's date
+        // 🗓 Display today's date
         dateText.text = DateTime.Now.ToString("dddd, dd MMM yyyy");
 
-        // Hide Add Task Panel initially
+        // 🫗 Hide Add Task Panel initially
         addTaskPanel.SetActive(false);
 
-        // Assign button listeners
+        // 🧩 Assign button listeners
         confirmAddButton.onClick.AddListener(OnAddTaskClicked);
         cancelButton.onClick.AddListener(CloseAddTaskPanel);
 
-        // Refresh task list on start
+        // 🌀 Refresh task list on start
         RefreshTasks();
     }
 
@@ -50,16 +50,21 @@ public class UIManager : MonoBehaviour
     /// </summary>
     public void RefreshTasks()
     {
+        // Clear current list
         foreach (Transform child in taskListContent)
             Destroy(child.gameObject);
 
-        List<TaskItem> todayTasks = TaskManager.Instance.GetTasksByDate(DateTime.Today);
-        foreach (var task in todayTasks)
+        // ✅ Get all saved tasks
+        List<TaskItem> allTasks = TaskManager.Instance.GetAllTasks();
+
+        // Instantiate each task item
+        foreach (var task in allTasks)
         {
             GameObject t = Instantiate(taskItemPrefab, taskListContent);
             t.GetComponent<TaskItemUI>().Setup(task);
         }
 
+        // Update progress bar
         UpdateProgressBar();
     }
 
@@ -89,7 +94,9 @@ public class UIManager : MonoBehaviour
     {
         string name = inputTaskName.text.Trim();
         string desc = inputTaskDescription.text.Trim();
-        DateTime dueDate = DateTime.Today; // You can extend this later
+
+        // ⏰ Ensure time is stripped (midnight)
+        DateTime dueDate = DateTime.Now.Date;
 
         if (string.IsNullOrWhiteSpace(name))
         {
@@ -97,7 +104,7 @@ public class UIManager : MonoBehaviour
             return;
         }
 
-        // Add task and refresh list
+        // ➕ Add task and refresh list
         TaskManager.Instance.AddTask(name, desc, dueDate);
         CloseAddTaskPanel();
         RefreshTasks();
@@ -108,14 +115,15 @@ public class UIManager : MonoBehaviour
     /// </summary>
     public void UpdateProgressBar()
     {
-        List<TaskItem> today = TaskManager.Instance.GetTasksByDate(DateTime.Today);
-        if (today.Count == 0)
+        List<TaskItem> all = TaskManager.Instance.GetAllTasks();
+
+        if (all.Count == 0)
         {
             progressBar.value = 0;
             return;
         }
 
-        int completed = today.FindAll(t => t.IsComplete).Count;
-        progressBar.value = (float)completed / today.Count;
+        int completed = all.FindAll(t => t.IsComplete).Count;
+        progressBar.value = (float)completed / all.Count;
     }
 }

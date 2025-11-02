@@ -1,52 +1,79 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
 public class TaskManager : MonoBehaviour
 {
-    public static TaskManager Instance; // Singleton access
+    public static TaskManager Instance;
 
     private List<TaskItem> tasks = new List<TaskItem>();
 
     private void Awake()
     {
-        Instance = this;
+        if (Instance == null)
+            Instance = this;
+        else
+            Destroy(gameObject);
     }
 
-    void Start()
+    private void Start()
     {
-        Debug.Log("TaskManager initialized");
+        // 🔄 Load saved data at start
+        tasks = SaveSystem.LoadTasks();
+        if (tasks == null)
+            tasks = new List<TaskItem>();
+
+        Debug.Log($"Loaded {tasks.Count} tasks from save file.");
+
+        // Refresh UI after loading
+        UIManager.Instance.RefreshTasks();
     }
 
-    // Add a new task
+    private void OnApplicationQuit()
+    {
+        SaveSystem.SaveTasks(tasks);
+    }
+
     public TaskItem AddTask(string title, string description, DateTime dueDate)
     {
-        var t = new TaskItem(title, description, dueDate);
+        TaskItem t = new TaskItem(title, description, dueDate);
         tasks.Add(t);
-        Debug.Log($"Added task: {t.Title} (id: {t.Id})");
+        SaveSystem.SaveTasks(tasks);
         return t;
     }
 
-    // Mark as complete
     public bool MarkTaskComplete(string id)
     {
         var t = tasks.Find(x => x.Id == id);
-        if (t == null) return false;
+        if (t == null)
+        {
+            Debug.LogWarning($"No task found with id {id}");
+            return false;
+        }
 
         t.IsComplete = true;
+        SaveSystem.SaveTasks(tasks);
         return true;
     }
 
-    // Get all tasks for a specific date
+    // ✅ Get all tasks (no date filtering)
+    public List<TaskItem> GetAllTasks()
+    {
+        return tasks;
+    }
+
+    // Optional: Filtered list (for future use)
     public List<TaskItem> GetTasksByDate(DateTime date)
     {
         return tasks.Where(x => x.DueDate.Date == date.Date).ToList();
     }
 
-    // Get all tasks
-    public List<TaskItem> GetAllTasks()
+    public void ClearAllTasks()
     {
-        return tasks;
+        tasks.Clear();
+        SaveSystem.ClearSave();
+        UIManager.Instance.RefreshTasks();
+        Debug.Log("🧹 All tasks cleared!");
     }
 }
