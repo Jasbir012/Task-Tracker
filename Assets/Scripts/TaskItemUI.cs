@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
 
@@ -16,16 +16,28 @@ public class TaskItemUI : MonoBehaviour
 
         taskNameText.text = task.Title;
         dueDateText.text = task.DueDate.ToShortDateString();
-        checkbox.isOn = task.IsComplete;
+        checkbox.isOn = task.IsCompleted;
 
         // Prevent duplicate event calls
         checkbox.onValueChanged.RemoveAllListeners();
         checkbox.onValueChanged.AddListener(OnToggleChanged);
     }
 
-    private void OnToggleChanged(bool isOn)
+    void OnToggleChanged(bool isOn)
     {
-        currentTask.IsComplete = isOn;
+        currentTask.IsCompleted = isOn;
         UIManager.Instance.UpdateProgressBar();
+
+        if (isOn)
+        {
+            // 🟢 Add XP when task completed
+            PlayerProgress.Instance.AddXP(currentTask.xp);
+        }
+        else
+        {
+            // 🔴 Remove XP if unchecked (optional)
+            PlayerProgress.Instance.AddXP(-currentTask.xp);
+        }
     }
+
 }

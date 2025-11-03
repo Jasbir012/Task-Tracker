@@ -19,25 +19,25 @@ public class TaskManager : MonoBehaviour
 
     private void Start()
     {
-        // 🔄 Load saved data at start
         tasks = SaveSystem.LoadTasks();
         if (tasks == null)
             tasks = new List<TaskItem>();
 
         Debug.Log($"Loaded {tasks.Count} tasks from save file.");
 
-        // Refresh UI after loading
-        UIManager.Instance.RefreshTasks();
+        if (UIManager.Instance != null)
+            UIManager.Instance.RefreshTasks();
     }
 
     private void OnApplicationQuit()
     {
         SaveSystem.SaveTasks(tasks);
+        PlayerProgress.Instance.SaveProgress();
     }
 
-    public TaskItem AddTask(string title, string description, DateTime dueDate)
+    public TaskItem AddTask(string title, string description, DateTime dueDate, int xp = 10)
     {
-        TaskItem t = new TaskItem(title, description, dueDate);
+        TaskItem t = new TaskItem(title, description, dueDate, xp);
         tasks.Add(t);
         SaveSystem.SaveTasks(tasks);
         return t;
@@ -52,18 +52,21 @@ public class TaskManager : MonoBehaviour
             return false;
         }
 
-        t.IsComplete = true;
-        SaveSystem.SaveTasks(tasks);
+        if (!t.IsCompleted)
+        {
+            t.IsCompleted = true;
+            SaveSystem.SaveTasks(tasks);
+            PlayerProgress.Instance.AddXP(t.xp);
+        }
+
         return true;
     }
 
-    // ✅ Get all tasks (no date filtering)
     public List<TaskItem> GetAllTasks()
     {
         return tasks;
     }
 
-    // Optional: Filtered list (for future use)
     public List<TaskItem> GetTasksByDate(DateTime date)
     {
         return tasks.Where(x => x.DueDate.Date == date.Date).ToList();
@@ -73,7 +76,10 @@ public class TaskManager : MonoBehaviour
     {
         tasks.Clear();
         SaveSystem.ClearSave();
-        UIManager.Instance.RefreshTasks();
+
+        if (UIManager.Instance != null)
+            UIManager.Instance.RefreshTasks();
+
         Debug.Log("🧹 All tasks cleared!");
     }
 }

@@ -6,12 +6,11 @@ public class TaskItem
     public string Id;
     public string Title;
     public string Description;
-    public bool IsComplete;
-
-    // Store date as ISO string for JSON
+    public bool IsCompleted;
+    public int xp;
     public string DueDateString;
+    public DateTime CreatedAt;
 
-    // Helper property (not serialized directly)
     public DateTime DueDate
     {
         get
@@ -26,15 +25,14 @@ public class TaskItem
         }
     }
 
-    public DateTime CreatedAt;
-
-    public TaskItem(string title, string description, DateTime dueDate)
+    public TaskItem(string title, string description, DateTime dueDate, int xp)
     {
         Id = Guid.NewGuid().ToString();
         Title = title;
         Description = description;
         DueDate = dueDate;
-        IsComplete = false;
+        IsCompleted = false;
+        this.xp = xp;
         CreatedAt = DateTime.Now;
     }
 }

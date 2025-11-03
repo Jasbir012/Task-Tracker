@@ -20,7 +20,8 @@ public class UIManager : MonoBehaviour
     public GameObject addTaskPanel;
     public TMP_InputField inputTaskName;
     public TMP_InputField inputTaskDescription;
-    public TMP_InputField inputDueDate; // Optional (for future)
+    public TMP_InputField inputXP;
+    public TMP_InputField inputDueDate;
     public Button confirmAddButton;
     public Button cancelButton;
 
@@ -31,72 +32,58 @@ public class UIManager : MonoBehaviour
 
     private void Start()
     {
-        // 🗓 Display today's date
         dateText.text = DateTime.Now.ToString("dddd, dd MMM yyyy");
-
-        // 🫗 Hide Add Task Panel initially
         addTaskPanel.SetActive(false);
 
-        // 🧩 Assign button listeners
         confirmAddButton.onClick.AddListener(OnAddTaskClicked);
         cancelButton.onClick.AddListener(CloseAddTaskPanel);
 
-        // 🌀 Refresh task list on start
         RefreshTasks();
     }
 
-    /// <summary>
-    /// Refresh the list of visible tasks in the ScrollView.
-    /// </summary>
     public void RefreshTasks()
     {
-        // Clear current list
         foreach (Transform child in taskListContent)
             Destroy(child.gameObject);
 
-        // ✅ Get all saved tasks
         List<TaskItem> allTasks = TaskManager.Instance.GetAllTasks();
 
-        // Instantiate each task item
         foreach (var task in allTasks)
         {
             GameObject t = Instantiate(taskItemPrefab, taskListContent);
             t.GetComponent<TaskItemUI>().Setup(task);
         }
 
-        // Update progress bar
         UpdateProgressBar();
     }
 
-    /// <summary>
-    /// Show the Add Task popup panel.
-    /// </summary>
     public void OpenAddTaskPanel()
     {
         addTaskPanel.SetActive(true);
         inputTaskName.text = "";
         inputTaskDescription.text = "";
+        inputXP.text = "";
         inputDueDate.text = "";
     }
 
-    /// <summary>
-    /// Hide the Add Task popup panel.
-    /// </summary>
     public void CloseAddTaskPanel()
     {
         addTaskPanel.SetActive(false);
     }
 
-    /// <summary>
-    /// Called when the "Add Task" confirm button is pressed.
-    /// </summary>
     public void OnAddTaskClicked()
     {
         string name = inputTaskName.text.Trim();
         string desc = inputTaskDescription.text.Trim();
+        string xpText = inputXP.text.Trim();
+        int xp = 10;
 
-        // ⏰ Ensure time is stripped (midnight)
+        if (!string.IsNullOrEmpty(xpText))
+            int.TryParse(xpText, out xp);
+
         DateTime dueDate = DateTime.Now.Date;
+        if (DateTime.TryParse(inputDueDate.text, out DateTime parsed))
+            dueDate = parsed;
 
         if (string.IsNullOrWhiteSpace(name))
         {
@@ -104,15 +91,11 @@ public class UIManager : MonoBehaviour
             return;
         }
 
-        // ➕ Add task and refresh list
-        TaskManager.Instance.AddTask(name, desc, dueDate);
+        TaskManager.Instance.AddTask(name, desc, dueDate, xp);
         CloseAddTaskPanel();
         RefreshTasks();
     }
 
-    /// <summary>
-    /// Update the progress bar based on completed tasks.
-    /// </summary>
     public void UpdateProgressBar()
     {
         List<TaskItem> all = TaskManager.Instance.GetAllTasks();
@@ -123,7 +106,7 @@ public class UIManager : MonoBehaviour
             return;
         }
 
-        int completed = all.FindAll(t => t.IsComplete).Count;
+        int completed = all.FindAll(t => t.IsCompleted).Count;
         progressBar.value = (float)completed / all.Count;
     }
 }
