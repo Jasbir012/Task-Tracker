@@ -87,7 +87,7 @@ public class UIManager : MonoBehaviour
 
         if (string.IsNullOrWhiteSpace(name))
         {
-            Debug.LogWarning("⚠️ Task name cannot be empty!");
+            Debug.LogWarning(" Task name cannot be empty!");
             return;
         }
 

@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 using System.IO;
 
 public class PlayerProgress : MonoBehaviour
@@ -30,13 +31,51 @@ public class PlayerProgress : MonoBehaviour
         }
 
         DontDestroyOnLoad(gameObject);
-        savePath = Path.Combine(Application.persistentDataPath, "playerProgress.json");
+
+        string userName = PlayerPrefs.GetString("CurrentUser", "Guest");
+        string folder = Path.Combine(Application.persistentDataPath, "users", userName);
+
+        if (!Directory.Exists(folder))
+            Directory.CreateDirectory(folder);
+
+        savePath = Path.Combine(folder, "playerProgress.json");
     }
 
     private void Start()
     {
         LoadProgress();
         UpdateUI();
+    }
+
+    private void OnEnable()
+    {
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    private void OnDisable()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        if (levelText == null || xpText == null || xpSlider == null)
+        {
+            GameObject levelObj = GameObject.Find("LevelText");
+            GameObject xpObj = GameObject.Find("XPText");
+            GameObject sliderObj = GameObject.Find("XPSlider");
+
+            if (levelObj != null)
+                levelText = levelObj.GetComponent<TMP_Text>();
+
+            if (xpObj != null)
+                xpText = xpObj.GetComponent<TMP_Text>();
+
+            if (sliderObj != null)
+                xpSlider = sliderObj.GetComponent<Slider>();
+
+            UpdateUI();
+        }
     }
 
     public void AddXP(int amount)
@@ -51,6 +90,8 @@ public class PlayerProgress : MonoBehaviour
             xpToNextLevel = Mathf.RoundToInt(xpToNextLevel * 1.2f);
             LevelUpFeedback();
         }
+
+        Debug.Log($"XP added: {amount}, total: {currentXP}/{xpToNextLevel}, Level: {level}");
 
         UpdateUI();
         SaveProgress();
@@ -73,11 +114,9 @@ public class PlayerProgress : MonoBehaviour
 
     private void LevelUpFeedback()
     {
-        Debug.Log($"🎉 Level Up! You are now Level {level}");
-        // Optional: add particle/sound effects here
+        Debug.Log($"Level Up! You are now Level {level}");
     }
 
-    // ---------- SAVE / LOAD ----------
     [System.Serializable]
     private class PlayerData
     {
@@ -97,14 +136,14 @@ public class PlayerProgress : MonoBehaviour
 
         string json = JsonUtility.ToJson(data, true);
         File.WriteAllText(savePath, json);
-        Debug.Log($"💾 Saved Player Progress to {savePath}");
+        Debug.Log($"Saved Player Progress for {PlayerPrefs.GetString("CurrentUser", "Guest")} to {savePath}");
     }
 
     public void LoadProgress()
     {
         if (!File.Exists(savePath))
         {
-            Debug.Log("No player progress file found, starting fresh.");
+            Debug.Log($"No progress found for {PlayerPrefs.GetString("CurrentUser", "Guest")}, starting fresh.");
             return;
         }
 
@@ -114,7 +153,7 @@ public class PlayerProgress : MonoBehaviour
         level = data.level;
         xpToNextLevel = data.xpToNextLevel;
 
-        Debug.Log($"📂 Loaded Player Progress — Lv.{level}, XP: {currentXP}/{xpToNextLevel}");
+        Debug.Log($"Loaded Progress for {PlayerPrefs.GetString("CurrentUser", "Guest")} — Lv.{level}, XP: {currentXP}/{xpToNextLevel}");
     }
 
     public void ResetProgress()

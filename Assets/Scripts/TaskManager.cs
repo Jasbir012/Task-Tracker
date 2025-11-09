@@ -80,6 +80,6 @@ public class TaskManager : MonoBehaviour
         if (UIManager.Instance != null)
             UIManager.Instance.RefreshTasks();
 
-        Debug.Log("🧹 All tasks cleared!");
+        Debug.Log(" All tasks cleared!");
     }
 }

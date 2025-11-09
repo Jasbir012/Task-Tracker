@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using TMPro;
 using System;
+using System.IO;
 
 public class HeaderPanel : MonoBehaviour
 {
@@ -8,18 +9,47 @@ public class HeaderPanel : MonoBehaviour
     public TMP_Text greetingText;
     public TMP_Text dateText;
 
-    [Header("User Info")]
-    public string userName = "NightMare";
+    private string userName = "Player";
 
     void Start()
     {
+        LoadUserName();
         UpdateDate();
         UpdateGreeting();
     }
 
+    void LoadUserName()
+    {
+        // ✅ Get current active user
+        if (PlayerPrefs.HasKey("CurrentUser"))
+        {
+            userName = PlayerPrefs.GetString("CurrentUser");
+        }
+        else
+        {
+            // Backup option: read from user.json if PlayerPrefs was cleared
+            string basePath = Path.Combine(Application.persistentDataPath, "users");
+            if (Directory.Exists(basePath))
+            {
+                string[] folders = Directory.GetDirectories(basePath);
+                if (folders.Length > 0)
+                {
+                    string lastUserPath = Path.Combine(folders[folders.Length - 1], "user.json");
+                    if (File.Exists(lastUserPath))
+                    {
+                        string json = File.ReadAllText(lastUserPath);
+                        UserData data = JsonUtility.FromJson<UserData>(json);
+                        userName = data.userName;
+                    }
+                }
+            }
+        }
+    }
+
     void UpdateDate()
     {
-        dateText.text = DateTime.Now.ToString("dddd, dd MMM yyyy");
+        if (dateText != null)
+            dateText.text = DateTime.Now.ToString("dddd, dd MMM yyyy");
     }
 
     void UpdateGreeting()
@@ -28,12 +58,19 @@ public class HeaderPanel : MonoBehaviour
         string greeting;
 
         if (hour < 12)
-            greeting = "Good Morning 🌞";
+            greeting = "Good Morning";
         else if (hour < 18)
-            greeting = "Good Afternoon ☀️";
+            greeting = "Good Afternoon";
         else
-            greeting = "Good Evening 🌙";
+            greeting = "Good Evening";
 
-        greetingText.text = $"{greeting}, {userName}!";
+        if (greetingText != null)
+            greetingText.text = $"{greeting}, {userName}!";
+    }
+
+    [System.Serializable]
+    private class UserData
+    {
+        public string userName;
     }
 }
