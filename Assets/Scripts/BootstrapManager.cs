@@ -5,25 +5,35 @@ public class BootstrapManager : MonoBehaviour
 {
     private void Start()
     {
-        
-        Invoke(nameof(CheckLoginStatus), 0.05f);
+        Debug.Log(" Bootstrap started. Checking login status...");
+        PlayerPrefs.Save(); // Make sure it's synced
+
+        Invoke(nameof(CheckLoginStatus), 0.1f);
     }
 
     void CheckLoginStatus()
     {
-       
+        // Force check what’s actually in PlayerPrefs
         if (PlayerPrefs.HasKey("CurrentUser"))
         {
             string currentUser = PlayerPrefs.GetString("CurrentUser", "");
-            if (!string.IsNullOrEmpty(currentUser))
+            Debug.Log($" CurrentUser found in prefs: '{currentUser}'");
+
+            // If we find an empty or Guest value, treat as no user
+            if (!string.IsNullOrEmpty(currentUser) && currentUser != "Guest")
             {
-                Debug.Log($" User '{currentUser}' found — loading MainScene...");
-                SceneManager.LoadScene("SampleScene"); 
+                Debug.Log($" User '{currentUser}' found — loading SampleScene...");
+                SceneManager.LoadScene("SampleScene");
                 return;
             }
         }
+        else
+        {
+            Debug.Log("layerPrefs has no 'CurrentUser' key.");
+        }
 
-        Debug.Log(" No active user found,  redirecting to LoginScene...");
+        // Fallback always goes to Login
+        Debug.Log(" No valid user session found. Redirecting to LoginScene...");
         SceneManager.LoadScene("LoginScene");
     }
 }

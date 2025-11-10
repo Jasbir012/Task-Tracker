@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 using TMPro;
 using System;
-using System.IO;
 
 public class HeaderPanel : MonoBehaviour
 {
@@ -20,29 +19,15 @@ public class HeaderPanel : MonoBehaviour
 
     void LoadUserName()
     {
-        // ✅ Get current active user
+        // ✅ Only load if a real logged-in user exists
         if (PlayerPrefs.HasKey("CurrentUser"))
         {
             userName = PlayerPrefs.GetString("CurrentUser");
         }
         else
         {
-            // Backup option: read from user.json if PlayerPrefs was cleared
-            string basePath = Path.Combine(Application.persistentDataPath, "users");
-            if (Directory.Exists(basePath))
-            {
-                string[] folders = Directory.GetDirectories(basePath);
-                if (folders.Length > 0)
-                {
-                    string lastUserPath = Path.Combine(folders[folders.Length - 1], "user.json");
-                    if (File.Exists(lastUserPath))
-                    {
-                        string json = File.ReadAllText(lastUserPath);
-                        UserData data = JsonUtility.FromJson<UserData>(json);
-                        userName = data.userName;
-                    }
-                }
-            }
+            Debug.LogWarning(" No CurrentUser found — skipping user load.");
+            userName = "Guest";
         }
     }
 
@@ -66,11 +51,5 @@ public class HeaderPanel : MonoBehaviour
 
         if (greetingText != null)
             greetingText.text = $"{greeting}, {userName}!";
-    }
-
-    [System.Serializable]
-    private class UserData
-    {
-        public string userName;
     }
 }

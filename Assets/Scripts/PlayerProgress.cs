@@ -31,8 +31,14 @@ public class PlayerProgress : MonoBehaviour
         }
 
         DontDestroyOnLoad(gameObject);
-
-        string userName = PlayerPrefs.GetString("CurrentUser", "Guest");
+        string userName = PlayerPrefs.GetString("CurrentUser", "");
+        if (string.IsNullOrEmpty(userName))
+        {
+            Debug.LogWarning("⚠️ No active user found. PlayerProgress will not initialize.");
+            Destroy(gameObject);
+            return;
+        }
+        
         string folder = Path.Combine(Application.persistentDataPath, "users", userName);
 
         if (!Directory.Exists(folder))

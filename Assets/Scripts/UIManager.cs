@@ -20,7 +20,6 @@ public class UIManager : MonoBehaviour
     public GameObject addTaskPanel;
     public TMP_InputField inputTaskName;
     public TMP_InputField inputTaskDescription;
-    public TMP_InputField inputXP;
     public TMP_InputField inputDueDate;
     public Button confirmAddButton;
     public Button cancelButton;
@@ -62,7 +61,6 @@ public class UIManager : MonoBehaviour
         addTaskPanel.SetActive(true);
         inputTaskName.text = "";
         inputTaskDescription.text = "";
-        inputXP.text = "";
         inputDueDate.text = "";
     }
 
@@ -75,11 +73,9 @@ public class UIManager : MonoBehaviour
     {
         string name = inputTaskName.text.Trim();
         string desc = inputTaskDescription.text.Trim();
-        string xpText = inputXP.text.Trim();
         int xp = 10;
 
-        if (!string.IsNullOrEmpty(xpText))
-            int.TryParse(xpText, out xp);
+        
 
         DateTime dueDate = DateTime.Now.Date;
         if (DateTime.TryParse(inputDueDate.text, out DateTime parsed))
