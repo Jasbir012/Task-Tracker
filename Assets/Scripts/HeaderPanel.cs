@@ -19,7 +19,7 @@ public class HeaderPanel : MonoBehaviour
 
     void LoadUserName()
     {
-        // ✅ Only load if a real logged-in user exists
+        
         if (PlayerPrefs.HasKey("CurrentUser"))
         {
             userName = PlayerPrefs.GetString("CurrentUser");
